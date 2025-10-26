@@ -1,3 +1,3 @@
-Limithor.exe
-Limithor-Update.exe
+Service/
+*.exe
 compiler.ahk
