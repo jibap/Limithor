@@ -1,4 +1,0 @@
-D:\Documents\Jibe\Informatique\InformaPic\Technique\Languages\System\AutoHotKey\Limithor\Service\bin\Release\net9.0\win-x64\publish\appsettings.Development.json
-D:\Documents\Jibe\Informatique\InformaPic\Technique\Languages\System\AutoHotKey\Limithor\Service\bin\Release\net9.0\win-x64\publish\appsettings.json
-D:\Documents\Jibe\Informatique\InformaPic\Technique\Languages\System\AutoHotKey\Limithor\Service\bin\Release\net9.0\win-x64\publish\Limithor.pdb
-D:\Documents\Jibe\Informatique\InformaPic\Technique\Languages\System\AutoHotKey\Limithor\Service\bin\Release\net9.0\win-x64\publish\Limithor.exe
