@@ -1,0 +1,30 @@
+{
+  "users": {
+    "user2": {
+      "config": {
+        "limitType": "daily",
+        "limitDuration": 2
+      },
+      "state": {
+        "usedDuration": 0,
+        "cycleKey": "2025-08-19",
+        "lastCountedMinute": ""
+      }
+    },
+    "user": {
+      "config": {
+        "limitType": "weekly",
+        "limitDuration": 300
+      },
+      "state": {
+        "usedDuration": 0,
+        "cycleKey": "2025-w34",
+        "lastCountedMinute": ""
+      }
+    }
+  },
+  "global": {
+    "defaultLimitType": "daily",
+    "defaultLimitDuration": 120
+  }
+}
