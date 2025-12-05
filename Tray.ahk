@@ -90,12 +90,12 @@ Username := UserGUI.Add("Text", "x80 y150 w150", "")
 UserGUI.SetFont("s10 norm")
 PeriodType := UserGUI.Add("Text", "x100 yp+30 w150","")
 
-UserGUI.Add("Picture", "x19 y99 w32 h152 BackgroundBlack")
+borderProgress := UserGUI.Add("Picture", "x19 y99 w32 h152 BackgroundBlack")
 progressBar := UserGUI.Add("Progress", "x20 y100 w30 h150 vertical Backgrounde2e2e2 c1BBCA8", "")
 
 Quota := UserGUI.Add("Text", "x60 y100  w150", "")
 UserGUI.SetFont("c1BBCA8  s11 bold")
-RemainingDuration := UserGUI.Add("Text", "x60 y230  w150", "")
+RemainingDuration := UserGUI.Add("Text", "x60 y230  w200", "")
 
 UserGUI.SetFont("s10 norm")
 
@@ -210,10 +210,16 @@ GetRemainingMinutes(forDisplay := false) {
                 limitType := userConfig.Has("limitType") ? userConfig["limitType"] : "Inconnu"
                 limitTypeH := (limitType = "daily") ? "Cycle Quotidien" : (limitType = "weekly") ? "Cycle Hebdomadaire" : limitType
                 PeriodType.Text := limitTypeH
-                Quota.Text := humanDuration(duration)
-                ; UsedDuration.Text := humanDuration(used)
-                RemainingDuration.Text := humanDuration(remaining) . " restantes"
-                progressBar.Value := (remaining / duration) * 100
+                if( duration == 0) {
+                    Quota.Text := "Mode Chrono"
+                    RemainingDuration.Text := humanDuration(used, " comptée")
+                    borderProgress.Visible := false
+                    progressBar.Visible := false
+                }else{
+                    Quota.Text := humanDuration(duration, "")
+                    RemainingDuration.Text := humanDuration(remaining)
+                    progressBar.Value := (remaining / duration) * 100
+                }
                 UserGUI.Show()
             }
             return remaining
@@ -231,19 +237,19 @@ GetRemainingMinutes(forDisplay := false) {
     }
 }
 
-humanDuration(minutes) {
+humanDuration(minutes, postfix := " restante") {
     if (minutes < 60) {
-        return minutes " minute" (minutes > 1 ? "s" : "") " restante" (minutes > 1 ? "s" : "")
+        return minutes " minute" (minutes > 1 ? "s" : "") postfix (minutes > 1 && postfix != "" ? "s" : "")
     }
 
     hours := Floor(minutes / 60)
     mins := Mod(minutes, 60)
 
     if (mins = 0) {
-        return hours " heure" (hours > 1 ? "s" : "") " restante" (hours > 1 ? "s" : "")
+        return hours " heure" (hours > 1 ? "s" : "") postfix (hours > 1 && postfix != "" ? "s" : "")
     }
 
-    return hours "h" (mins < 10 ? "0" : "") mins " restant"
+    return hours "h" (mins < 10 ? "0" : "") mins postfix
 }
 
 OnTrayClick(wParam, lParam, msg, hwnd) {
@@ -279,3 +285,26 @@ runConfig(*) {
 ; ##     ##  #######  ##    ## 
 
 SetTimer check, 60000  ; toutes les 60s
+
+; Exemple de lecture d'un fichier INI pour calculer la moyenne des durées
+
+; username := "alice"
+; data := IniRead("history.ini", username)
+
+; durations := []
+; for line in StrSplit(data, "`n")
+; {
+;     if InStr(line, "=")
+;     {
+;         parts := StrSplit(line, "=")
+;         durations.Push(parts[2])
+;     }
+; }
+
+; sum := 0
+; for d in durations
+;     sum += d
+
+; average := (durations.Length > 0) ? (sum / durations.Length) : 0
+
+; MsgBox("Moyenne de " username " : " average " minutes")
