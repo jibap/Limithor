@@ -22,7 +22,7 @@ Dans ce dépôt vous trouverez les sources nécessaires pour recréer le logicie
 ## Mise en œuvre
 Il suffit de télécharger le [fichier d'installation](https://github.com/jibap/Limithor/releases/latest) de ce dépôt et avoir les droits admin sur Windows.
 
-Ensuite tout est guidé. 
+Ensuite tout est guidé. **Il est possible de n'activer qu'un chrono sans quota pour simplement compter le temps de session.** 
 
 Pour la version compilée, le fait d'aller dans le configurateur suffit à détecter une nouvelle version. 
 
