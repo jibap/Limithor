@@ -1,3 +1,9 @@
+; =============================================================================
+; Licence : GNU GPL v3 - https://www.gnu.org/licenses/gpl-3.0.html
+; Auteur : Jibap - https://github.com/jibap/
+; GUI qui permet de voir la config utilisateur Limithor (affichage du temps restant) + notifications dans la barre des tâches
+; =============================================================================
+
 #SingleInstance Force
 #Include <JSON>  ; Inclure la bibliothèque JSON
 

@@ -1,3 +1,9 @@
+; =============================================================================
+; Licence : GNU GPL v3 - https://www.gnu.org/licenses/gpl-3.0.html
+; Auteur : Jibap - https://github.com/jibap/
+; GUI qui permet de configurer Limithor (gestion des utilisateurs, quotas, etc.)
+; =============================================================================
+
 #Warn
 #SingleInstance force ; Ecrase si instance en cours
 #Include <JSON>  ; Inclure la bibliothèque JSON
@@ -16,12 +22,16 @@ if A_IsCompiled && !A_IsAdmin {
 ; =========================================
 ; Includes
 ; =========================================
-; #Include <GuiCtrlTips>
 #Include "*i version.txt" ; utilisé lors de la compilation
 if !A_IsCompiled || !IsSet(currentVersion) { ; fallback si non compilé
     currentVersion := "AHK_DIRECT"
 }
 #Include "*i updater.ahk" ; gestion des mises à jour
+
+; VÉRIFICATION MISES À JOUR, SI INCLUSE
+try{
+    CheckForUpdate()
+}
 
 ; #### ##    ## #### ########
 ;  ##  ###   ##  ##     ##
@@ -53,8 +63,6 @@ if (InStr(windowsVersion, "10")) {
     validIconID := "297"
     settingsIconID := "317"
 }
-
-CheckForUpdate()
 
 ;  ######   #######  ##    ## ######## ####  ######       ######   ##     ## ####
 ; ##    ## ##     ## ###   ## ##        ##  ##    ##     ##    ##  ##     ##  ##
@@ -148,13 +156,6 @@ ExitAppli(*) {
     }
     ExitApp
 }
-
-; initTips(GUIObj) {
-;     GUIObj.Tips := GuiCtrlTips(GUIObj)
-;     GUIObj.Tips.SetBkColor(0xFFFFFF)
-;     GUIObj.Tips.SetTxColor(0x404040)
-;     GUIObj.Tips.SetMargins(4, 4, 4, 4)
-; }
 
 ; Fonction spéciale pour les GUI, permet d'afficher une icone dans un bouton
 SetButtonIcon(Button, File, Index, Size := 16) {
@@ -348,7 +349,5 @@ if jsonObj.Has("users") {
 if jsonObj.Has("log") {
     logCB.Value := jsonObj["log"] == JSON.true ? true : false
 }
-
-
 
 ConfigGUI.Show()
