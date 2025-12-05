@@ -12,7 +12,7 @@ En **2025**, je m'y suis remis pour mes derniers enfants, cette fois c'est une v
 Le logiciel est composé :
 * d'un **installer** ([innoSetup](https://jrsoftware.org/ishelp/index.php)) qui gère aussi la mise à jour et la désinstallation (cette partie n'est pas incluse au dépôt puisque le processus de mise à jour se base sur les releases de la version compilée)
 * les **interfaces** de configuration (Config.ahk) et de suivi utilisateur (Tray.ahk) sont en [AutoHotKey v2](https://www.autohotkey.com/download/ahk-v2.exe)
-* le **moteur de décompte** est un service écrit en .net (C#). Ce dernier génère la config par défaut et le log (si activé). 
+* le **moteur de décompte** est un service écrit en .net (C#). Ce dernier génère la config par défaut et le log (si activé). Le dotnet-runtime-9 sera proposé à l'installation si non présent.
 
 Dans ce dépôt vous trouverez les sources nécessaires pour recréer le logiciel par vous-même si vous ne souhaitez pas télécharger la version compilée. 
 ⚠️Le téléchargement peut-être détecté comme un logiciel malveillant selon votre niveau de protection... pb connu sous AHK, malheureusement !
