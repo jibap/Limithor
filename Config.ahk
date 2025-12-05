@@ -93,7 +93,7 @@ ConfigGUI.SetFont("s10 norm")
 
 
 ; Liste déroulante des comptes
-UserList := ConfigGUI.Add("ListBox", "xs+15 y+30 h180")
+UserList := ConfigGUI.Add("ListBox", "xs+15 y+30 h200")
 UserList.OnEvent("Change", userSelected)
 
 SaveButton := ConfigGUI.Add("Button", "w155 h35 Disabled", A_Space . "Enregistrer")
@@ -102,13 +102,17 @@ SaveButton.OnEvent("Click", saveConfig)
 
 ; Champs de paramétrage
 ConfigGUI.SetFont("s15")
-ConfigGUI.Add("Picture", "Icon" . contactIconID . " x+20 y110 w24 h24", "shell32.dll")
-UsernameSelected := ConfigGUI.Add("Text", "x+5  w100", "")
-UserEnabled := ConfigGUI.Add("Checkbox", "", "Activé")
-UserEnabled.OnEvent("Click", userHasChanged)
+ConfigGUI.Add("Picture", "Icon" . contactIconID . " x+10 y110 w36 h36", "shell32.dll")
+UsernameSelected := ConfigGUI.Add("Text", "x+5 yp-5 w100", "")
 
+UserEnabledCB := ConfigGUI.Add("Checkbox", "", "Activé")
+UserEnabledCB.OnEvent("Click", userHasChanged)
 ConfigGUI.SetFont("s10 norm")
-ConfigGUI.Add("GroupBox", "x180 y+10 w240 h50", "Périodicité")
+
+ChronoModeCB := ConfigGUI.Add("Checkbox", "x+10 yp+3", "(mode chrono)")
+ChronoModeCB.OnEvent("Click", chronoChecked)
+
+ConfigGUI.Add("GroupBox", "x180 y+30 w240 h50", "Périodicité")
 radioPeriodH := ConfigGUI.Add("Radio", "xp+10 yp+20 Group", "Hebdomadaire")
 radioPeriodQ := ConfigGUI.Add("Radio", "x+20 ", "Quotidien")
 radioPeriodH.OnEvent("Click", userHasChanged)
@@ -124,7 +128,7 @@ RadioQuotaUnitM.OnEvent("Click", quotaChanged)
 RadioQuotaUnitH.OnEvent("Click", quotaChanged)
 
 ConfigGUI.Add("Text", "x180 y+30", "Temps restant :")
-remainingMinutes := ConfigGUI.Add("Edit", "x+10 w30 Right Number", "0")
+remainingMinutes := ConfigGUI.Add("Edit", "x+10 w40 Right Number", "0")
 ConfigGUI.Add("Text", "x+10", "(minutes)")
 remainingMinutes.OnEvent("Change", remainingMinutesChanged)
 
@@ -231,7 +235,7 @@ userSelected(*) {
 
     UsernameSelected.Text := UserList.Text
     
-    UserEnabled.Value := (currentUserConfig.Has("enabled") && currentUserConfig["enabled"] == JSON.true) ? true : false
+    UserEnabledCB.Value := (currentUserConfig.Has("enabled") && currentUserConfig["enabled"] == JSON.true) ? true : false
     radioPeriodH.Value := (currentUserConfig.Has("limitType") && currentUserConfig["limitType"] = "weekly") ? true : false
     radioPeriodQ.Value := (currentUserConfig.Has("limitType") && currentUserConfig["limitType"] = "daily") ? true : false
     quotaInMinutes := currentUserConfig.Has("limitDuration") ? currentUserConfig["limitDuration"] : 0
@@ -270,7 +274,7 @@ saveConfig(*) {
     cfg := userObj["config"]
 
     ; état activé
-    cfg["enabled"] := UserEnabled.Value ? JSON.true : JSON.false
+    cfg["enabled"] := UserEnabledCB.Value ? JSON.true : JSON.false
 
     ; périodicité
     if (radioPeriodH.Value)
@@ -306,11 +310,23 @@ saveJSON() {
     FileAppend(jsonText, configFile, "UTF-8")
 }
 
+chronoChecked(*) {
+    quotaEdit.Enabled := !ChronoModeCB.Value
+    RadioQuotaUnitM.Enabled := !ChronoModeCB.Value
+    RadioQuotaUnitH.Enabled := !ChronoModeCB.Value
+    remainingMinutes.Enabled := !ChronoModeCB.Value
+    quotaEdit.Value := ChronoModeCB.Value ? 0 : quotaEdit.Value
+    quotaChanged()
+    userHasChanged()
+}
+
 quotaChanged(*) {
-    if (RadioQuotaUnitM.Value == true) {
-        remainingMinutes.Value := quotaEdit.Value
-   } else {
-        remainingMinutes.Value := quotaEdit.Value * 60
+    if (quotaEdit.Value != "") {
+        if (RadioQuotaUnitM.Value == true) {
+            remainingMinutes.Value := quotaEdit.Value
+        } else {
+            remainingMinutes.Value := quotaEdit.Value * 60
+        }
     }
     userHasChanged()
 }
