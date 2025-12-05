@@ -161,7 +161,7 @@ check(forced := false) {
 
     ; Affichage du temps restant seulement sur demande au-dessus de 5 minutes
     if (forced || specialText != "") {
-        TrayTip(humanDuration(remaining) " restantes " specialText, "Limithor", 1)
+        TrayTip(humanDuration(remaining) " " specialText, "Limithor", 1)
     }
 }
 
@@ -227,17 +227,17 @@ GetRemainingMinutes(forDisplay := false) {
 
 humanDuration(minutes) {
     if (minutes < 60) {
-        return minutes " minute" (minutes > 1 ? "s" : "")
+        return minutes " minute" (minutes > 1 ? "s" : "") " restante" (minutes > 1 ? "s" : "")
     }
 
     hours := Floor(minutes / 60)
     mins := Mod(minutes, 60)
 
     if (mins = 0) {
-        return hours " heure" (hours > 1 ? "s" : "")
+        return hours " heure" (hours > 1 ? "s" : "") " restante" (hours > 1 ? "s" : "")
     }
 
-    return hours "h" mins
+    return hours "h" (mins < 10 ? "0" : "") mins " restant"
 }
 
 OnTrayClick(wParam, lParam, msg, hwnd) {
