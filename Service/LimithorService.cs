@@ -38,8 +38,17 @@ public sealed class LimithorService
 
             int? sessionId = GetActiveSessionId(username);
             bool isActive = sessionId.HasValue;
+            bool userIsInChronoMode = user.config.limitDuration == 0;
 
-            WriteLog($"Utilisateur: {username}, Actif: {isActive}, Durée utilisée: {user.state.usedDuration} mins, Limite: {user.config.limitDuration} mins");
+            if (userIsInChronoMode)
+            {
+                WriteLog($"Utilisateur: {username} est en mode Chrono (illimité).");
+            }
+            else
+            {
+                WriteLog($"Utilisateur: {username}, Actif: {isActive}, Durée utilisée: {user.state.usedDuration} mins, Limite: {user.config.limitDuration} mins");
+            }
+
 
             if (isActive)
             {
@@ -66,7 +75,7 @@ public sealed class LimithorService
                     user.state.usedDuration += 1; // 1 minute entamée est comptabilisée
                     user.state.lastCountedTimestamp = now;
                     userChanged = true;
-                    WriteLog($"1 minute de + pour {username}, total: {user.state.usedDuration} mins.");
+                    WriteLog($"1 minute décomptée pour {username}, total utilisé : {user.state.usedDuration} mins.");
                 }
 
                 if (userChanged){
@@ -74,7 +83,7 @@ public sealed class LimithorService
                 }
 
                 // Vérifier si l'utilisateur a dépassé son quota
-                if (user.state.usedDuration >= user.config.limitDuration)
+                if (!userIsInChronoMode && user.state.usedDuration >= user.config.limitDuration)
                 {
                     WriteLog($"⛔ Utilisateur {username} a dépassé son quota. Deconnexion...");
                     NativeMethods.WTSDisconnectSession(IntPtr.Zero, sessionId!.Value, false);
