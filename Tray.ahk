@@ -70,7 +70,7 @@ trayMenu.Default := "1&"
 ;  #######   ######  ######## ##     ##     ######    #######  #### 
 
 UserGUI := Gui("")
-UserGUI.Title := "Limithor - Configuration utilisateur"
+UserGUI.Title := "Limithor"
 UserGUI.MarginX := 0
 
 ; Logo
@@ -85,24 +85,25 @@ UserGUI.Add("Picture", "x30 y10 w64 h64 +BackgroundTrans icon1", iconPath)
 UserGUI.SetFont("s30")
 UserGUI.Add("Text", "x100 yp+20 +BackgroundTrans", "Limithor")
 
-settingsButton := UserGUI.Add("Picture", "section Icon" . settingsIconID . " x220 y100 w24 h24", "shell32.dll")
-settingsButton.OnEvent("Click", runConfig)
-
 UserGUI.SetFont("s20")
 Username := UserGUI.Add("Text", "x80 y150 w150", "")
 UserGUI.SetFont("s10 norm")
 PeriodType := UserGUI.Add("Text", "x100 yp+30 w150","")
 
-UserGUI.Add("Picture", "x29 y99 w32 h152 BackgroundBlack")
-progressBar := UserGUI.Add("Progress", "x30 y100 w30 h150 vertical Backgrounde2e2e2 c1BBCA8", "")
+UserGUI.Add("Picture", "x19 y99 w32 h152 BackgroundBlack")
+progressBar := UserGUI.Add("Progress", "x20 y100 w30 h150 vertical Backgrounde2e2e2 c1BBCA8", "")
 
-Quota := UserGUI.Add("Text", "x70 y100  w150", "")
+Quota := UserGUI.Add("Text", "x60 y100  w150", "")
 UserGUI.SetFont("c1BBCA8  s11 bold")
-RemainingDuration := UserGUI.Add("Text", "x70 y230  w150", "")
+RemainingDuration := UserGUI.Add("Text", "x60 y230  w150", "")
 
 UserGUI.SetFont("s10 norm")
 
-quitButton := UserGUI.Add("Button", "x30 y260 w200 h40 +BackgroundTrans", "Fermer")
+settingsButton := UserGUI.Add("Button", "x18 y260 w35 h40 +BackgroundTrans +0x40 +0x0C", A_Space)
+SetButtonIcon(settingsButton, "shell32.dll", settingsIconID, 24)
+settingsButton.OnEvent("Click", runConfig)
+
+quitButton := UserGUI.Add("Button", "x60 y260 w180 h40 +BackgroundTrans", "Fermer")
 quitButton.OnEvent("Click", CloseGui)
 
 
@@ -135,6 +136,11 @@ checkFromTray(*) {
     check(true)
 }
 
+; Fonction spéciale pour les GUI, permet d'afficher une icone dans un bouton
+SetButtonIcon(Button, File, Index, Size := 16) {
+    hIcon := LoadPicture(File, "h" . Size . " Icon" . Index, &_)
+    ErrorLevel := SendMessage(0xF7, 1, hIcon, , "ahk_id " Button.hwnd)
+}
 
 check(forced := false) {
     global lastMinutes

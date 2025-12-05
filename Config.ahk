@@ -91,15 +91,20 @@ ConfigGUI.SetFont("s30")
 ConfigGUI.Add("Text", "x100 yp+20 +BackgroundTrans", "Configuration")
 ConfigGUI.SetFont("s10 norm")
 
+
 ; Liste déroulante des comptes
-UserList := ConfigGUI.Add("ListBox", "xs+15 y+30 h250")
+UserList := ConfigGUI.Add("ListBox", "xs+15 y+30 h180")
 UserList.OnEvent("Change", userSelected)
+
+SaveButton := ConfigGUI.Add("Button", "w155 h35 Disabled", A_Space . "Enregistrer")
+SetButtonIcon(SaveButton, "shell32.dll", validIconID, 20)
+SaveButton.OnEvent("Click", saveConfig)
 
 ; Champs de paramétrage
 ConfigGUI.SetFont("s15")
-ConfigGUI.Add("Picture", "section Icon" . contactIconID . " x+20 w24 h24", "shell32.dll")
+ConfigGUI.Add("Picture", "Icon" . contactIconID . " x+20 y110 w24 h24", "shell32.dll")
 UsernameSelected := ConfigGUI.Add("Text", "x+5  w100", "")
-UserEnabled := ConfigGUI.Add("Checkbox", "x+10 yp", "Activé")
+UserEnabled := ConfigGUI.Add("Checkbox", "", "Activé")
 UserEnabled.OnEvent("Click", userHasChanged)
 
 ConfigGUI.SetFont("s10 norm")
@@ -123,17 +128,15 @@ remainingMinutes := ConfigGUI.Add("Edit", "x+10 w30 Right Number", "0")
 ConfigGUI.Add("Text", "x+10", "(minutes)")
 remainingMinutes.OnEvent("Change", remainingMinutesChanged)
 
-SaveButton := ConfigGUI.Add("Button", "x180 y+27 w240 h35 Disabled", A_Space . "Enregistrer")
-SetButtonIcon(SaveButton, "shell32.dll", validIconID, 20)
-SaveButton.OnEvent("Click", saveConfig)
-
 ConfigGUI.Add("Picture", "x0 y+20 w430 h2 BackgroundSilver")
-ExitButton := ConfigGUI.Add("Button", "x20 y+10 w150 h30", A_Space . "Quitter")
+
+logCB := ConfigGUI.Add("Checkbox", "x20 y+20", "Activer le journal")
+logCB.OnEvent("Click", toggleLogs)
+
+ExitButton := ConfigGUI.Add("Button", "x+50 yp-10 w200 h35", A_Space . "Quitter")
 SetButtonIcon(ExitButton, "shell32.dll", quitIconID, 15)
 ExitButton.OnEvent("Click", ExitAppli)
 
-logCB := ConfigGUI.Add("Checkbox", "x+50 yp+5", "Activer le journal")
-logCB.OnEvent("Click", toggleLogs)
 
 ; ######## ##     ## ##    ##  ######  ######## ####  #######  ##    ##  ######
 ; ##       ##     ## ###   ## ##    ##    ##     ##  ##     ## ###   ## ##    ##
