@@ -110,7 +110,7 @@ UserEnabledCB.OnEvent("Click", userHasChanged)
 ConfigGUI.SetFont("s10 norm")
 
 ChronoModeCB := ConfigGUI.Add("Checkbox", "x+10 yp+3", "(mode chrono)")
-ChronoModeCB.OnEvent("Click", chronoChecked)
+ChronoModeCB.OnEvent("Click", chronoModeCBChanged)
 
 ConfigGUI.Add("GroupBox", "x180 y+30 w240 h50", "Périodicité")
 radioPeriodH := ConfigGUI.Add("Radio", "xp+10 yp+20 Group", "Hebdomadaire")
@@ -236,9 +236,13 @@ userSelected(*) {
     UsernameSelected.Text := UserList.Text
     
     UserEnabledCB.Value := (currentUserConfig.Has("enabled") && currentUserConfig["enabled"] == JSON.true) ? true : false
+    ChronoModeCB.Value := (currentUserConfig.Has("limitDuration") && currentUserConfig["limitDuration"] = 0) ? true : false
     radioPeriodH.Value := (currentUserConfig.Has("limitType") && currentUserConfig["limitType"] = "weekly") ? true : false
     radioPeriodQ.Value := (currentUserConfig.Has("limitType") && currentUserConfig["limitType"] = "daily") ? true : false
     quotaInMinutes := currentUserConfig.Has("limitDuration") ? currentUserConfig["limitDuration"] : 0
+
+    if (ChronoModeCB.Value)
+        chronoChecked(true)
 
     ; Détermine l'unité du quota
     if (quotaInMinutes > 60 && (Mod(quotaInMinutes, 60) = 0)) {
@@ -310,14 +314,24 @@ saveJSON() {
     FileAppend(jsonText, configFile, "UTF-8")
 }
 
-chronoChecked(*) {
+chronoModeCBChanged(*){
+    chronoChecked(false)
+}
+
+chronoChecked(init := false) {
     quotaEdit.Enabled := !ChronoModeCB.Value
     RadioQuotaUnitM.Enabled := !ChronoModeCB.Value
     RadioQuotaUnitH.Enabled := !ChronoModeCB.Value
     remainingMinutes.Enabled := !ChronoModeCB.Value
-    quotaEdit.Value := ChronoModeCB.Value ? 0 : quotaEdit.Value
-    quotaChanged()
-    userHasChanged()
+    quotaEdit.Value := ChronoModeCB.Value ? 0 : 1
+    if (ChronoModeCB.Value = false) {
+        RadioQuotaUnitH.Value := true
+        RadioQuotaUnitM.Value := false
+    }
+    if !init{ ; besoin de faire suivre les changements si cliqué par l'utilisateur et non à l'initialisation
+        quotaChanged()
+        userHasChanged()
+    }
 }
 
 quotaChanged(*) {
