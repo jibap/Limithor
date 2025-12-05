@@ -1,0 +1,8 @@
+Service/*
+!Service/*.cs  
+*.exe
+compiler.ahk
+updater.ahk
+Output/
+config.json
+*.iss
