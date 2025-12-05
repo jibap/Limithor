@@ -58,10 +58,10 @@ public sealed class LimithorService
                 string currentCycleKey = GetCycleKey(user.config.limitType);
                 if (user.state.cycleKey != currentCycleKey)
                 {
-                    WriteLog($"Cycle réinitialisé pour {username}. Temps utilisé : {user.state.usedDuration} mins.");
-                    SaveHistoryIni(username, user);
                     if (!string.IsNullOrEmpty(user.state.cycleKey))
                     {
+                        WriteLog($"Cycle réinitialisé pour {username}. Temps utilisé : {user.state.usedDuration} mins.");
+                        SaveHistoryIni(username, user);
                         user.state.usedDuration = 0;
                     }
                     user.state.cycleKey = currentCycleKey;
