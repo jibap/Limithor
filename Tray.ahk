@@ -21,14 +21,13 @@ if !A_IsCompiled || !IsSet(currentVersion) { ; fallback si non compilé
 ;     adminUser := true
 ; }
 
-; #### ##    ## #### ######## 
-;  ##  ###   ##  ##     ##    
-;  ##  ####  ##  ##     ##    
-;  ##  ## ## ##  ##     ##    
-;  ##  ##  ####  ##     ##    
-;  ##  ##   ###  ##     ##    
-; #### ##    ## ####    ##    
-
+; #### ##    ## #### ########
+;  ##  ###   ##  ##     ##
+;  ##  ####  ##  ##     ##
+;  ##  ## ## ##  ##     ##
+;  ##  ##  ####  ##     ##
+;  ##  ##   ###  ##     ##
+; #### ##    ## ####    ##
 
 ; ICONES
 settingsIconID := "315"
@@ -61,13 +60,13 @@ trayMenu.add()
 trayMenu.add("Quitter", ExitAppli)
 trayMenu.Default := "1&"
 
-; ##     ##  ######  ######## ########      ######   ##     ## #### 
-; ##     ## ##    ## ##       ##     ##    ##    ##  ##     ##  ##  
-; ##     ## ##       ##       ##     ##    ##        ##     ##  ##  
-; ##     ##  ######  ######   ########     ##   #### ##     ##  ##  
-; ##     ##       ## ##       ##   ##      ##    ##  ##     ##  ##  
-; ##     ## ##    ## ##       ##    ##     ##    ##  ##     ##  ##  
-;  #######   ######  ######## ##     ##     ######    #######  #### 
+; ##     ##  ######  ######## ########      ######   ##     ## ####
+; ##     ## ##    ## ##       ##     ##    ##    ##  ##     ##  ##
+; ##     ## ##       ##       ##     ##    ##        ##     ##  ##
+; ##     ##  ######  ######   ########     ##   #### ##     ##  ##
+; ##     ##       ## ##       ##   ##      ##    ##  ##     ##  ##
+; ##     ## ##    ## ##       ##    ##     ##    ##  ##     ##  ##
+;  #######   ######  ######## ##     ##     ######    #######  ####
 
 UserGUI := Gui("")
 UserGUI.Title := "Limithor"
@@ -88,7 +87,7 @@ UserGUI.Add("Text", "x100 yp+20 +BackgroundTrans", "Limithor")
 UserGUI.SetFont("s20")
 Username := UserGUI.Add("Text", "x80 y150 w150", "")
 UserGUI.SetFont("s10 norm")
-PeriodType := UserGUI.Add("Text", "x100 yp+30 w150","")
+PeriodType := UserGUI.Add("Text", "x100 yp+30 w150", "")
 
 borderProgress := UserGUI.Add("Picture", "x19 y99 w32 h152 BackgroundBlack")
 progressBar := UserGUI.Add("Progress", "x20 y100 w30 h150 vertical Backgrounde2e2e2 c1BBCA8", "")
@@ -106,14 +105,13 @@ settingsButton.OnEvent("Click", runConfig)
 quitButton := UserGUI.Add("Button", "x60 y260 w180 h40 +BackgroundTrans", "Fermer")
 quitButton.OnEvent("Click", CloseGui)
 
-
-; ########  #######  ##    ##  ######  ######## ####  #######  ##    ##  ######  
-; ##       ##     ## ###   ## ##    ##    ##     ##  ##     ## ###   ## ##    ## 
-; ##       ##     ## ####  ## ##          ##     ##  ##     ## ####  ## ##       
-; ######   ##     ## ## ## ## ##          ##     ##  ##     ## ## ## ##  ######  
-; ##       ##     ## ##  #### ##          ##     ##  ##     ## ##  ####       ## 
-; ##       ##     ## ##   ### ##    ##    ##     ##  ##     ## ##   ### ##    ## 
-; ##        #######  ##    ##  ######     ##    ####  #######  ##    ##  ######  
+; ########  #######  ##    ##  ######  ######## ####  #######  ##    ##  ######
+; ##       ##     ## ###   ## ##    ##    ##     ##  ##     ## ###   ## ##    ##
+; ##       ##     ## ####  ## ##          ##     ##  ##     ## ####  ## ##
+; ######   ##     ## ## ## ## ##          ##     ##  ##     ## ## ## ##  ######
+; ##       ##     ## ##  #### ##          ##     ##  ##     ## ##  ####       ##
+; ##       ##     ## ##   ### ##    ##    ##     ##  ##     ## ##   ### ##    ##
+; ##        #######  ##    ##  ######     ##    ####  #######  ##    ##  ######
 
 ExitAppli(*) {
     ExitApp
@@ -132,7 +130,7 @@ restartAsAdmin(*) {
     ExitApp
 }
 
-checkFromTray(*) { 
+checkFromTray(*) {
     check(true)
 }
 
@@ -151,7 +149,15 @@ check(forced := false) {
     if (remaining = "error") {
         return
     }
-
+    ; Cas Chrono
+    if (InStr(remaining, "chrono:")) {
+        if (forced){
+            used := SubStr(remaining, 8)
+            TrayTip("Mode Chrono : " humanDuration(used, " comptée"), "Limithor", 1)
+        }
+        return
+    }
+    ; Cas temps écoulé
     if (remaining <= 0) {
         TrayTip("Temps écoulé. Déconnexion imminente !", "Limithor", 2)
         return
@@ -163,7 +169,6 @@ check(forced := false) {
             specialText := "avant déconnexion. Sauvegardez votre travail..."
         }
     }
-
 
     ; Affichage du temps restant seulement sur demande au-dessus de 5 minutes
     if (forced || specialText != "") {
@@ -179,7 +184,8 @@ GetRemainingMinutes(forDisplay := false) {
             jsonObj := JSON.parse(content)
         }
         catch {
-            response := MsgBox("Erreur lors de l'analyse du fichier de configuration :`n`n" content "`n`nFermer le programme ?", "Limithor", "YesNo Icon!")
+            response := MsgBox("Erreur lors de l'analyse du fichier de configuration :`n`n" content "`n`nFermer le programme ?",
+                "Limithor", "YesNo Icon!")
             if (response = "Yes")
                 ExitApp
             return "error"
@@ -192,30 +198,36 @@ GetRemainingMinutes(forDisplay := false) {
             userState := userData.Has("state") ? userData["state"] : {}
             used := userState.Has("usedDuration") ? userState["usedDuration"] : 0
             enabled := userConfig.Has("enabled") ? userConfig["enabled"] : false
-            
+
             ; Vérifie que l'utilisateur est activé
             if (!enabled) {
                 if (forDisplay) {
                     MsgBox("L'Utilisateur < " user " > `nn'a pas de limite activée.", "Limithor", "Iconi")
                 }
                 return "error"
-            }   
+            }
 
             if (used = "")
                 used := 0
 
-            remaining := duration - used
+            if (duration == 0) {
+                remaining := "chrono:" used
+            } else {
+                remaining := duration - used
+            }
+
             if (forDisplay) {
                 Username.Text := user
                 limitType := userConfig.Has("limitType") ? userConfig["limitType"] : "Inconnu"
-                limitTypeH := (limitType = "daily") ? "Cycle Quotidien" : (limitType = "weekly") ? "Cycle Hebdomadaire" : limitType
+                limitTypeH := (limitType = "daily") ? "Cycle Quotidien" : (limitType = "weekly") ? "Cycle Hebdomadaire" :
+                    limitType
                 PeriodType.Text := limitTypeH
-                if( duration == 0) {
+                if (duration == 0) {
                     Quota.Text := "Mode Chrono"
                     RemainingDuration.Text := humanDuration(used, " comptée")
                     borderProgress.Visible := false
                     progressBar.Visible := false
-                }else{
+                } else {
                     Quota.Text := humanDuration(duration, "")
                     RemainingDuration.Text := humanDuration(remaining)
                     progressBar.Value := (remaining / duration) * 100
@@ -224,13 +236,15 @@ GetRemainingMinutes(forDisplay := false) {
             }
             return remaining
         } else {
-            response := MsgBox("Utilisateur < " user " >`nnon trouvé dans la configuration.`n`nFermer le programme ?", "Limithor", "YesNo Iconi")
+            response := MsgBox("Utilisateur < " user " >`nnon trouvé dans la configuration.`n`nFermer le programme ?",
+                "Limithor", "YesNo Iconi")
             if (response = "Yes")
                 ExitApp
             return "error"
         }
     } else {
-        response := MsgBox("Fichier de configuration introuvable : " configFile "`n`nFermer le programme ?", "Limithor", "YesNo Icon!")
+        response := MsgBox("Fichier de configuration introuvable : " configFile "`n`nFermer le programme ?", "Limithor",
+            "YesNo Icon!")
         if (response = "Yes")
             ExitApp
         return "error"
@@ -262,10 +276,10 @@ OnTrayClick(wParam, lParam, msg, hwnd) {
         SetTimer checkFromTray, 0 ; Annule le Timer du simple clic
         displayConfig()
         return 1
-    }else if (lParam == 0x205) { ; clic droit up
+    } else if (lParam == 0x205) { ; clic droit up
         trayMenu.Show()
         return 1
-    }else if (lParam == 1029) { ; clic sur notification
+    } else if (lParam == 1029) { ; clic sur notification
         displayConfig()
         return 1
     }
@@ -276,15 +290,15 @@ runConfig(*) {
     Run(A_ScriptDir "\Config.exe")
 }
 
-; ########  ##     ## ##    ## 
-; ##     ## ##     ## ###   ## 
-; ##     ## ##     ## ####  ## 
-; ########  ##     ## ## ## ## 
-; ##   ##   ##     ## ##  #### 
-; ##    ##  ##     ## ##   ### 
-; ##     ##  #######  ##    ## 
+; ########  ##     ## ##    ##
+; ##     ## ##     ## ###   ##
+; ##     ## ##     ## ####  ##
+; ########  ##     ## ## ## ##
+; ##   ##   ##     ## ##  ####
+; ##    ##  ##     ## ##   ###
+; ##     ##  #######  ##    ##
 
-SetTimer check, 60000  ; toutes les 60s
+SetTimer check, 50000  ; toutes les 60s
 
 ; Exemple de lecture d'un fichier INI pour calculer la moyenne des durées
 
