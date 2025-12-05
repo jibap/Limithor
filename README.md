@@ -1,7 +1,7 @@
 <p align="center"><img src="https://github.com/jibap/Limithor/blob/25.12.05/Limithor_exe.png"/></p>
 
 # Limithor
-Outil Windows de gestion du temps des sessions utilisateurs. Permet de définir et appliquer des quotas d’utilisation hebdomadaires ou mensuels.
+Outil Windows de gestion du temps des sessions utilisateurs. Permet de définir et appliquer des quotas d’utilisation hebdomadaires ou quotidiens.
 
 ## Projet
 J'ai cherché en vain une petite appli facile à mettre en oeuvre qui permettrait sous Windows de paramétrer un temps de session qui déconnecte automatiquement l'utilisateur, il existe beaucoup de logiciels mais aucun gratuit qui permette efficacement de le faire et surtout aucun qui propose un quota à la semaine ou qui ne déconnecte pas mais historise seulement... \
