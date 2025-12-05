@@ -58,9 +58,10 @@ public sealed class LimithorService
                 string currentCycleKey = GetCycleKey(user.config.limitType);
                 if (user.state.cycleKey != currentCycleKey)
                 {
-                    WriteLog($"Cycle réinitialisé pour {username}. Temps utilisé : {user.state.usedDuration} mins.");
                     if (!string.IsNullOrEmpty(user.state.cycleKey))
                     {
+                        WriteLog($"Cycle réinitialisé pour {username}. Temps utilisé : {user.state.usedDuration} mins.");
+                        SaveHistoryIni(username, user);
                         user.state.usedDuration = 0;
                     }
                     user.state.cycleKey = currentCycleKey;
@@ -69,7 +70,7 @@ public sealed class LimithorService
 
                 // Compter une minute supplémentaire
                 long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                var last = user.state.lastCountedTimestamp; 
+                var last = user.state.lastCountedTimestamp;
                 if (last == 0 || now - last >= 60)
                 {
                     user.state.usedDuration += 1; // 1 minute entamée est comptabilisée
@@ -78,7 +79,8 @@ public sealed class LimithorService
                     WriteLog($"1 minute décomptée pour {username}, total utilisé : {user.state.usedDuration} mins.");
                 }
 
-                if (userChanged){
+                if (userChanged)
+                {
                     configHasChanged = true;
                 }
 
@@ -91,11 +93,68 @@ public sealed class LimithorService
             }
         }
 
-        if(configHasChanged)
+        if (configHasChanged)
         {
             // Sauvegarder les modifications uniquement si la congig a changé
             _userManager.Save();
         }
+    }
+
+    private void SaveHistoryIni(string username, UserData user)
+    {
+        try
+        {
+            string path = Path.Combine(_installPath, "history.ini");
+            string section = username;
+            string key = user.state.cycleKey;          // la date (daily) ou semaine (weekly)
+            string value = user.state.usedDuration.ToString();
+
+            // Format INI : [username]\n2025-12-07=143
+            WriteIniValue(path, section, key, value);
+        }
+        catch (Exception ex)
+        {
+            WriteLog($"Erreur SaveHistoryIni pour {username} : {ex.Message}");
+        }
+    }
+
+    private void WriteIniValue(string file, string section, string key, string value)
+    {
+        // Création du fichier si inexistant
+        if (!File.Exists(file))
+            File.WriteAllText(file, "");
+
+        var lines = File.ReadAllLines(file).ToList();
+        int sectionIndex = lines.FindIndex(l => l.Trim().Equals($"[{section}]", StringComparison.OrdinalIgnoreCase));
+
+        // Section non trouvée -> la créer en fin de fichier
+        if (sectionIndex == -1)
+        {
+            lines.Add($"[{section}]");
+            lines.Add($"{key}={value}");
+        }
+        else
+        {
+            // Section trouvée → chercher la clé
+            int i = sectionIndex + 1;
+            bool keyUpdated = false;
+
+            while (i < lines.Count && !lines[i].StartsWith("["))
+            {
+                if (lines[i].StartsWith($"{key}=", StringComparison.Ordinal))
+                {
+                    lines[i] = $"{key}={value}";
+                    keyUpdated = true;
+                    break;
+                }
+                i++;
+            }
+
+            if (!keyUpdated)
+                lines.Insert(i, $"{key}={value}");
+        }
+
+        File.WriteAllLines(file, lines);
     }
 
     private string GetCycleKey(string limitType)
@@ -263,7 +322,7 @@ public class UserManager
         }
         catch
         {
-            
+
         }
     }
 
