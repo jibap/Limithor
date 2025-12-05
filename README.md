@@ -26,3 +26,4 @@ Ensuite tout est guidé.
 
 Pour la version compilée, le fait d'aller dans le configurateur suffit à détecter une nouvelle version. 
 
+![Limithor_screenshots](https://github.com/user-attachments/assets/31761e14-eebb-4496-87e5-0447859235ab)
