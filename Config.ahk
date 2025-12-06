@@ -7,6 +7,7 @@
 #Warn
 #SingleInstance force ; Ecrase si instance en cours
 #Include <JSON>  ; Inclure la bibliothèque JSON
+#Include <GuiCtrlTips>
 
 ; =========================================
 ; Elevation auto (admin requis)
@@ -76,8 +77,10 @@ ConfigGUI := Gui("")
 ConfigGUI.Title := "Limithor - Configuration"
 ConfigGUI.MarginX := 0
 
+initTips(ConfigGUI)
+
 ; Logo
-ConfigGUI.Add("Picture", "x0 y0 w430 h90 BackgroundWhite")  ; Zone blanche en arrière-plan
+ConfigGUI.Add("Picture", "x0 y0 w450 h90 BackgroundWhite")  ; Zone blanche en arrière-plan
 ; --- Logo + titre au-dessus ---
 if (!A_IsCompiled) {
     iconPath := A_ScriptDir "\Limithor.ico"
@@ -109,8 +112,11 @@ UserEnabledCB := ConfigGUI.Add("Checkbox", "", "Activé")
 UserEnabledCB.OnEvent("Click", userHasChanged)
 ConfigGUI.SetFont("s10 norm")
 
-ChronoModeCB := ConfigGUI.Add("Checkbox", "x+10 yp+3", "(mode chrono)")
+ChronoModeCB := ConfigGUI.Add("Checkbox", "x+10 yp+3", "Mode chrono")
 ChronoModeCB.OnEvent("Click", chronoModeCBChanged)
+
+chronoHelp := ConfigGUI.Add("Picture", "Icon" . helpIconID . " x+0 w16 h16 +0x0100", "shell32.dll")
+ConfigGUI.Tips.SetTip(chronoHelp, "Le temps de session est compté mais il n'y a pas de déconnexion.`nÀ la fin de la période choisie, le temps compté est remis à zéro`net conservé dans l'historique (si activé).")
 
 ConfigGUI.Add("GroupBox", "x180 y+30 w240 h50", "Périodicité")
 radioPeriodH := ConfigGUI.Add("Radio", "xp+10 yp+20 Group", "Hebdomadaire")
@@ -162,6 +168,13 @@ ExitAppli(*) {
         RunWait('sc start Limithor', , "Hide")
     }
     ExitApp
+}
+
+initTips(GUIObj) {
+    GUIObj.Tips := GuiCtrlTips(GUIObj)
+    GUIObj.Tips.SetBkColor(0xFFFFFF)
+    GUIObj.Tips.SetTxColor(0x404040)
+    GUIObj.Tips.SetMargins(4, 4, 4, 4)
 }
 
 ; Fonction spéciale pour les GUI, permet d'afficher une icone dans un bouton
