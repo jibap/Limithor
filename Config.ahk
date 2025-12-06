@@ -140,7 +140,7 @@ remainingMinutes.OnEvent("Change", remainingMinutesChanged)
 
 ConfigGUI.Add("Picture", "x0 y+20 w430 h2 BackgroundSilver")
 
-logCB := ConfigGUI.Add("Checkbox", "x20 y+20", "Activer le journal")
+logCB := ConfigGUI.Add("Checkbox", "x20 y+20", "Activer l'historique")
 logCB.OnEvent("Click", toggleLogs)
 
 ExitButton := ConfigGUI.Add("Button", "x+50 yp-10 w200 h35", A_Space . "Quitter")
