@@ -54,6 +54,7 @@ quitIconID := "132"
 settingsIconID := "315"
 helpIconID := "222"
 contactIconID := "161"
+deleteIconID := "32"
 
 ; DETERMINE LA VERSION DE WINDOWS
 objWMIService := ComObjGet("winmgmts:{impersonationLevel=impersonate}!\\" A_ComputerName "\root\cimv2")
@@ -138,13 +139,17 @@ remainingMinutes := ConfigGUI.Add("Edit", "x+10 w40 Right Number", "0")
 ConfigGUI.Add("Text", "x+10", "(minutes)")
 remainingMinutes.OnEvent("Change", remainingMinutesChanged)
 
-ConfigGUI.Add("Picture", "x0 y+20 w430 h2 BackgroundSilver")
+ConfigGUI.Add("Picture", "x0 y+20 w450 h2 BackgroundSilver")
 
-logCB := ConfigGUI.Add("Checkbox", "x20 y+20", "Activer l'historique")
+logCB := ConfigGUI.Add("Checkbox", "x20 y+15", "Activer l'historique")
 logCB.OnEvent("Click", toggleLogs)
 
-ExitButton := ConfigGUI.Add("Button", "x+50 yp-10 w200 h35", A_Space . "Quitter")
-SetButtonIcon(ExitButton, "shell32.dll", quitIconID, 15)
+resetLogImg := ConfigGUI.Add("Picture", "Icon" . deleteIconID . " x+0 yp-5 w24 h24 +0x0100", "shell32.dll")
+ConfigGUI.Tips.SetTip(resetLogImg, "Réinitialiser l'historique")
+resetLogImg.OnEvent("Click", resetLog)
+
+ExitButton := ConfigGUI.Add("Button", "x+35 yp-5 w200 h35", A_Space . "Quitter")
+SetButtonIcon(ExitButton, "shell32.dll", quitIconID, 24)
 ExitButton.OnEvent("Click", ExitAppli)
 
 
@@ -370,6 +375,15 @@ remainingMinutesChanged(*) {
             }
         }
         userHasChanged()
+    }
+}
+
+resetLog(*) {
+    if (FileExist(A_ScriptDir "\service.log")) {
+        FileDelete(A_ScriptDir "\service.log")
+        MsgBox("L'historique a été réinitialisé.", "Limithor", "Iconi")
+    } else {
+        MsgBox("Aucun historique n'a été trouvé.", "Limithor", "Icon!")
     }
 }
 
