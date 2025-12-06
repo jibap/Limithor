@@ -75,7 +75,7 @@ public sealed class LimithorService
                     user.state.usedDuration += 1; // 1 minute entamée est comptabilisée
                     user.state.lastCountedTimestamp = now;
                     userChanged = true;
-                    WriteLog($"1 minute comptée pour [{username}], total utilisé sur la période : {user.state.usedDuration} mins.");
+                    WriteLog($"1 minute comptée pour [{username}], total sur la période : {user.state.usedDuration} mins.");
                 }
 
                 if (userChanged)
