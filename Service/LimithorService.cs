@@ -25,7 +25,7 @@ public sealed class LimithorService
     public void Check()
     {
         bool configHasChanged = false;
-        WriteLog("Vérification des quotas des utilisateurs...");
+        // WriteLog("Vérification des quotas des utilisateurs...");
         foreach (var kvp in _userManager.Config.users)
         {
             string username = kvp.Key;
@@ -40,14 +40,14 @@ public sealed class LimithorService
             bool isActive = sessionId.HasValue;
             bool userIsInChronoMode = user.config.limitDuration == 0;
 
-            if (userIsInChronoMode)
-            {
-                WriteLog($"Utilisateur: {username} est en mode Chrono (illimité).");
-            }
-            else
-            {
-                WriteLog($"Utilisateur: {username}, Actif: {isActive}, Durée utilisée: {user.state.usedDuration} mins, Limite: {user.config.limitDuration} mins");
-            }
+            // if (userIsInChronoMode)
+            // {
+            //     WriteLog($"Utilisateur: {username} est en mode Chrono (illimité).");
+            // }
+            // else
+            // {
+            //     WriteLog($"Utilisateur: {username}, Actif: {isActive}, Durée utilisée: {user.state.usedDuration} mins, Limite: {user.config.limitDuration} mins");
+            // }
 
 
             if (isActive)
@@ -87,7 +87,7 @@ public sealed class LimithorService
                 // Vérifier si l'utilisateur a dépassé son quota
                 if (!userIsInChronoMode && user.state.usedDuration >= user.config.limitDuration)
                 {
-                    WriteLog($"⛔ Utilisateur {username} a dépassé son quota. Deconnexion...");
+                    WriteLog($"{username} a dépassé son quota. Deconnexion...");
                     NativeMethods.WTSDisconnectSession(IntPtr.Zero, sessionId!.Value, false);
                 }
             }

@@ -263,7 +263,7 @@ humanDuration(minutes, postfix := " restante") {
         return hours " heure" (hours > 1 ? "s" : "") postfix (hours > 1 && postfix != "" ? "s" : "")
     }
 
-    return hours "h" (mins < 10 ? "0" : "") mins postfix
+    return hours "h" (mins < 10 ? "0" : "") mins postfix "s"
 }
 
 OnTrayClick(wParam, lParam, msg, hwnd) {
