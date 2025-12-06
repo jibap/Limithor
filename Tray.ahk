@@ -299,26 +299,3 @@ runConfig(*) {
 ; ##     ##  #######  ##    ##
 
 SetTimer check, 50000  ; toutes les 60s
-
-; Exemple de lecture d'un fichier INI pour calculer la moyenne des durées
-
-; username := "alice"
-; data := IniRead("history.ini", username)
-
-; durations := []
-; for line in StrSplit(data, "`n")
-; {
-;     if InStr(line, "=")
-;     {
-;         parts := StrSplit(line, "=")
-;         durations.Push(parts[2])
-;     }
-; }
-
-; sum := 0
-; for d in durations
-;     sum += d
-
-; average := (durations.Length > 0) ? (sum / durations.Length) : 0
-
-; MsgBox("Moyenne de " username " : " average " minutes")
