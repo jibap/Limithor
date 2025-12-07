@@ -108,7 +108,7 @@ UserEnabledCB := ConfigGUI.Add("Checkbox", "", "Activé")
 UserEnabledCB.OnEvent("Click", userHasChanged)
 ConfigGUI.SetFont("s10 norm")
 
-ChronoModeCB := ConfigGUI.Add("Checkbox", "x+10 yp+3", "Mode chrono")
+ChronoModeCB := ConfigGUI.Add("Checkbox", "x+10 yp+5", "Mode chrono")
 ChronoModeCB.OnEvent("Click", chronoModeCBChanged)
 
 chronoHelp := ConfigGUI.Add("Picture", "Icon" . helpIconID . " x+0 w16 h16 +0x0100", "shell32.dll")
@@ -146,7 +146,7 @@ ConfigGUI.Tips.SetTip(resetLogImg, "Réinitialiser l'historique (⚠️ pour tou
 resetLogImg.OnEvent("Click", resetLog)
 
 ExitButton := ConfigGUI.Add("Button", "x+35 yp-5 w200 h35", A_Space . "Quitter")
-SetButtonIcon(ExitButton, "shell32.dll", quitIconID, 24)
+SetButtonIcon(ExitButton, "shell32.dll", quitIconID, 12)
 ExitButton.OnEvent("Click", ExitAppli)
 
 
@@ -301,8 +301,8 @@ saveConfig(*) {
         cfg["limitType"] := "daily"
 
     ; quota
-    if(quotaEdit.Value = "" ){
-        MsgBox("Le quota ne peut pas être vide.", "Limithor", "Icon!")
+    if(quotaEdit.Value = "" || remainingMinutes.Value = ""){
+        MsgBox("Le quota et le temps restant ne peuvent pas être vides.", "Limithor", "Icon!")
         return
     }
     quota := quotaEdit.Value * 1
@@ -359,6 +359,8 @@ quotaChanged(*) {
         } else {
             remainingMinutes.Value := quotaEdit.Value * 60
         }
+    }else{
+        quotaEdit.Value := 0 
     }
     userHasChanged()
 }
@@ -368,16 +370,25 @@ remainingMinutesChanged(*) {
         if (RadioQuotaUnitM.Value == true) {
             if (remainingMinutes.Value > quotaEdit.Value) {
                 remainingMinutes.Value := quotaEdit.Value
-                MsgBox("Le temps restant ne peut pas être supérieur au quota.", "Limithor", "Icon!")
+                ToolTip("Le temps restant ne peut pas être supérieur au quota.", , , 1)
+                SetTimer(HideToolTip, 2000)
             }
         } else {
             if (remainingMinutes.Value > quotaEdit.Value * 60) {
-                remainingMinutes.Value := quotaEdit.Value * 60
-                MsgBox("Le temps restant ne peut pas être supérieur au quota.", "Limithor", "Icon!")
+                remainingMinutes.Value := quotaEdit.Value * 60                
+                ToolTip("Le temps restant ne peut pas être supérieur au quota.", , , 1)
+                SetTimer(HideToolTip, 2000)
             }
         }
         userHasChanged()
+    }else{
+        remainingMinutes.Value := 0 
     }
+}
+
+HideToolTip() {
+    ToolTip()       ; Supprime le tooltip
+    SetTimer(HideToolTip, 0) ; Arrête le timer
 }
 
 resetLog(*) {
