@@ -9,30 +9,25 @@
 #Include <JSON>  ; Inclure la bibliothèque JSON
 #Include <GuiCtrlTips>
 
-; =========================================
-; Elevation auto (admin requis)
-; =========================================
-if A_IsCompiled && !A_IsAdmin {
-    try {
-        ; Demande l'élévation des privilèges
-        Run '*RunAs "' A_ScriptFullPath '"'
-    } 
-    ExitApp()
+; ================================
+; Spécifique à la version compilée
+; ================================
+if A_IsCompiled {
+    if !A_IsAdmin {
+        try {
+            ; Demande l'élévation des privilèges
+            Run '*RunAs "' A_ScriptFullPath '"'
+        } 
+        ExitApp()
+    }
+
+    #Include "*i version.txt" ; Ajout de la version au moment de la compilation
+    #Include "*i updater.ahk" ; Gestion des mises à jour
+    CheckForUpdate() ; Vérifie si une mise à jour est disponible à l'ouverture du script
 }
 
-; =========================================
-; Includes
-; =========================================
-#Include "*i version.txt" ; utilisé lors de la compilation
-if !A_IsCompiled || !IsSet(currentVersion) { ; fallback si non compilé
-    currentVersion := "AHK_DIRECT"
-}
-#Include "*i updater.ahk" ; gestion des mises à jour
-
-; VÉRIFICATION MISES À JOUR, SI INCLUSE
-try{
-    CheckForUpdate()
-}
+; Vérifie si l'utilisateur a les droits administrateur et si le service Limithor existe pour le démarrer/arrêter (dev env)
+serviceEditable := A_IsAdmin && (RunWait("sc query Limithor", , "Hide") = 0)
 
 ; #### ##    ## #### ########
 ;  ##  ###   ##  ##     ##
@@ -145,7 +140,7 @@ logCB := ConfigGUI.Add("Checkbox", "x20 y+15", "Activer l'historique")
 logCB.OnEvent("Click", toggleLogs)
 
 resetLogImg := ConfigGUI.Add("Picture", "Icon" . deleteIconID . " x+0 yp-5 w24 h24 +0x0100", "shell32.dll")
-ConfigGUI.Tips.SetTip(resetLogImg, "Réinitialiser l'historique")
+ConfigGUI.Tips.SetTip(resetLogImg, "Réinitialiser l'historique (⚠️ pour tous les utilisateurs)")
 resetLogImg.OnEvent("Click", resetLog)
 
 ExitButton := ConfigGUI.Add("Button", "x+35 yp-5 w200 h35", A_Space . "Quitter")
@@ -169,7 +164,7 @@ ExitAppli(*) {
             return
         }
     }
-    if (A_IsCompiled) {
+    if (serviceEditable) {
         RunWait('sc start Limithor', , "Hide")
     }
     ExitApp
@@ -395,7 +390,7 @@ resetLog(*) {
 ; ##    ##  ##     ## ##   ###
 ; ##     ##  #######  ##    ##
 
-if (A_IsCompiled) {
+if (serviceEditable) {
     RunWait('sc stop Limithor', , "Hide")
 }
 getJSON()
