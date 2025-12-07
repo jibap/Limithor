@@ -117,8 +117,8 @@ ConfigGUI.Tips.SetTip(chronoHelp, "Le temps de session est compté mais il n'y a
 ConfigGUI.Add("GroupBox", "x180 y+30 w240 h50", "Périodicité")
 radioPeriodH := ConfigGUI.Add("Radio", "xp+10 yp+20 Group", "Hebdomadaire")
 radioPeriodQ := ConfigGUI.Add("Radio", "x+20 ", "Quotidien")
-radioPeriodH.OnEvent("Click", userHasChanged)
-radioPeriodQ.OnEvent("Click", userHasChanged)
+radioPeriodH.OnEvent("Click", periodChanged)
+radioPeriodQ.OnEvent("Click", periodChanged)
 
 ConfigGUI.Add("GroupBox", "x180 y+30 w240 h50", "Quota")
 quotaEdit := ConfigGUI.AddEdit("xp+10 yp+15 w50 right Number")
@@ -350,6 +350,22 @@ chronoChecked(init := false) {
         quotaChanged()
         userHasChanged()
     }
+}
+
+
+periodChanged(*) {
+    if(logCB.Value){
+        response := MsgBox("La modification de la périodicité réinitialisera l'historique de les utilisateurs.`n`nContinuer ?", "Limithor", "YesNo Icon!")
+        if (response = "No") {
+            ; Restaure l'ancienne periode
+            radioPeriodQ.Value := radioPeriodH.Value
+            radioPeriodH.Value := !radioPeriodQ.Value
+            return
+        } else {
+            resetLog()
+        }
+    }
+    userHasChanged()
 }
 
 quotaChanged(*) {
