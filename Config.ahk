@@ -121,7 +121,8 @@ radioPeriodH.OnEvent("Click", userHasChanged)
 radioPeriodQ.OnEvent("Click", userHasChanged)
 
 ConfigGUI.Add("GroupBox", "x180 y+30 w240 h50", "Quota")
-quotaEdit := ConfigGUI.Add("Edit", "xp+10 yp+15 w30 Right Number", "0")
+quotaEdit := ConfigGUI.AddEdit("xp+10 yp+15 w50 right Number")
+ConfigGUI.AddUpDown("Range1-10080 0x80")
 quotaEdit.OnEvent("Change", quotaChanged)
 
 RadioQuotaUnitM := ConfigGUI.Add("Radio", "x+10 yp+5 Group", "Minutes")
@@ -130,7 +131,8 @@ RadioQuotaUnitM.OnEvent("Click", quotaChanged)
 RadioQuotaUnitH.OnEvent("Click", quotaChanged)
 
 ConfigGUI.Add("Text", "x180 y+30", "Temps restant :")
-remainingMinutes := ConfigGUI.Add("Edit", "x+10 w40 Right Number", "0")
+remainingMinutes := ConfigGUI.Add("Edit", "x+10 w60 Right Number")
+ConfigGUI.AddUpDown("Range1-10080 0x80")
 ConfigGUI.Add("Text", "x+10", "(minutes)")
 remainingMinutes.OnEvent("Change", remainingMinutesChanged)
 
@@ -254,8 +256,7 @@ userSelected(*) {
     radioPeriodQ.Value := (currentUserConfig.Has("limitType") && currentUserConfig["limitType"] = "daily") ? true : false
     quotaInMinutes := currentUserConfig.Has("limitDuration") ? currentUserConfig["limitDuration"] : 0
 
-    if (ChronoModeCB.Value)
-        chronoChecked(true)
+    chronoChecked(true)
 
     ; Détermine l'unité du quota
     if (quotaInMinutes > 60 && (Mod(quotaInMinutes, 60) = 0)) {
@@ -300,6 +301,10 @@ saveConfig(*) {
         cfg["limitType"] := "daily"
 
     ; quota
+    if(quotaEdit.Value = "" ){
+        MsgBox("Le quota ne peut pas être vide.", "Limithor", "Icon!")
+        return
+    }
     quota := quotaEdit.Value * 1
     if (RadioQuotaUnitH.Value)
         quota := quota * 60
@@ -359,14 +364,16 @@ quotaChanged(*) {
 }
 
 remainingMinutesChanged(*) {
-    if (remainingMinutes.Value != "") {
+    if (remainingMinutes.Value != "" && quotaEdit.Value != "") {
         if (RadioQuotaUnitM.Value == true) {
             if (remainingMinutes.Value > quotaEdit.Value) {
                 remainingMinutes.Value := quotaEdit.Value
+                MsgBox("Le temps restant ne peut pas être supérieur au quota.", "Limithor", "Icon!")
             }
         } else {
             if (remainingMinutes.Value > quotaEdit.Value * 60) {
                 remainingMinutes.Value := quotaEdit.Value * 60
+                MsgBox("Le temps restant ne peut pas être supérieur au quota.", "Limithor", "Icon!")
             }
         }
         userHasChanged()

@@ -12,15 +12,6 @@ if !A_IsCompiled || !IsSet(currentVersion) { ; fallback si non compilé
     currentVersion := "AHK_DIRECT"
 }
 
-; Vérifie si l'utilisateur est membre du groupe Administrateurs par SID (plus fiable, multilingue)
-; adminUser := false
-; cmd := 'whoami /groups | find "S-1-5-32-544"'
-; exitCode := RunWait(A_ComSpec ' /c ' cmd, , 'Hide')
-
-; if (exitCode = 0){
-;     adminUser := true
-; }
-
 ; #### ##    ## #### ########
 ;  ##  ###   ##  ##     ##
 ;  ##  ####  ##  ##     ##
