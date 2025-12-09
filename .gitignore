@@ -7,3 +7,4 @@ Output/
 config.json
 *.iss
 JSON.ahk
+*.log

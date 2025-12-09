@@ -39,6 +39,7 @@ serviceEditable := A_IsAdmin && (RunWait("sc query Limithor", , "Hide") = 0)
 
 SetWorkingDir(A_ScriptDir)
 configFile := A_ScriptDir "\config.json"
+logFile := A_ScriptDir "\service.log"
 refuseUpdate := false
 jsonObj := ""
 lastUserSelected := ""
@@ -138,11 +139,13 @@ remainingMinutes.OnEvent("Change", remainingMinutesChanged)
 
 ConfigGUI.Add("Picture", "x0 y+20 w450 h2 BackgroundSilver")
 
-logCB := ConfigGUI.Add("Checkbox", "x20 y+15", "Activer l'historique")
+logCB := ConfigGUI.Add("Checkbox", "x20 y+15", "Activer")
 logCB.OnEvent("Click", toggleLogs)
+Link := ConfigGUI.Add("Link", "x+-1", '<a href="' . logFile . '">l`'historique</a>')
 
-resetLogImg := ConfigGUI.Add("Picture", "Icon" . deleteIconID . " x+0 yp-5 w24 h24 +0x0100", "shell32.dll")
+resetLogImg := ConfigGUI.Add("Picture", "Icon" . deleteIconID . " x+5 yp-5 w24 h24 +0x0100", "shell32.dll")
 ConfigGUI.Tips.SetTip(resetLogImg, "Réinitialiser l'historique (⚠️ pour tous les utilisateurs)")
+SetControlCursor(resetLogImg.Hwnd, IDC_HAND := 32649) ; IDC_HAND = curseur "link pointer"
 resetLogImg.OnEvent("Click", resetLog)
 
 ExitButton := ConfigGUI.Add("Button", "x+35 yp-5 w200 h35", A_Space . "Quitter")
@@ -158,6 +161,11 @@ ExitButton.OnEvent("Click", ExitAppli)
 ; ##       ##     ## ##   ### ##    ##    ##     ##  ##     ## ##   ### ##    ##
 ; ##        #######  ##    ##  ######     ##    ####  #######  ##    ##  ######
 
+SetControlCursor(hWnd, cursorID) {
+    static GCLP_HCURSOR := -12
+    hCursor := DllCall("LoadCursor", "Ptr", 0, "Ptr", cursorID, "Ptr")
+    DllCall("SetClassLongPtr", "Ptr", hWnd, "Int", GCLP_HCURSOR, "Ptr", hCursor, "Ptr")
+}
 
 ExitAppli(*) {
     if (SaveButton.Enabled) {
