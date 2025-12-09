@@ -22,6 +22,7 @@ if !A_IsCompiled || !IsSet(currentVersion) { ; fallback si non compilé
 
 ; ICONES
 settingsIconID := "315"
+historyIconID := "250"
 
 ; DETERMINE LA VERSION DE WINDOWS
 objWMIService := ComObjGet("winmgmts:{impersonationLevel=impersonate}!\\" A_ComputerName "\root\cimv2")
@@ -30,6 +31,7 @@ for objOperatingSystem in objWMIService.ExecQuery("Select * from Win32_Operating
 ; SI WINDOWS 10
 if (InStr(windowsVersion, "10")) {
     settingsIconID := "317"
+    historyIconID := "266"
 }
 
 lastMinutes := ""
@@ -38,6 +40,9 @@ Persistent
 OnExit(ExitAppli)
 OnMessage(0x404, OnTrayClick)
 SetWorkingDir(A_ScriptDir)
+
+configFile := A_ScriptDir "\config.json"
+historyFile := A_ScriptDir "\service.log"
 
 ; CREATION DU TRAYMENU
 ; *********************
@@ -89,12 +94,33 @@ RemainingDuration := UserGUI.Add("Text", "x60 y230  w200", "")
 
 UserGUI.SetFont("s10 norm")
 
-settingsButton := UserGUI.Add("Button", "x18 y260 w35 h40 +BackgroundTrans +0x40 +0x0C", A_Space)
+settingsButton := UserGUI.Add("Button", "x10 y260 w35 h40 +BackgroundTrans +0x40 +0x0C", A_Space)
 SetButtonIcon(settingsButton, "shell32.dll", settingsIconID, 24)
 settingsButton.OnEvent("Click", runConfig)
 
-quitButton := UserGUI.Add("Button", "x60 y260 w180 h40 +BackgroundTrans", "Fermer")
+quitButton := UserGUI.Add("Button", "x+10 y260 w150 h40 +BackgroundTrans", "Fermer")
 quitButton.OnEvent("Click", CloseGui)
+
+historyButton := UserGUI.Add("Button", "x+10 y260 w35 h40 +BackgroundTrans +0x40 +0x0C", A_Space)
+SetButtonIcon(historyButton, "shell32.dll", historyIconID, 24)
+historyButton.OnEvent("Click", displayHistory)
+
+; ##     ## ####  ######  ########  #######  ########  ##    ##     ######   ##     ## #### 
+; ##     ##  ##  ##    ##    ##    ##     ## ##     ##  ##  ##     ##    ##  ##     ##  ##  
+; ##     ##  ##  ##          ##    ##     ## ##     ##   ####      ##        ##     ##  ##  
+; #########  ##   ######     ##    ##     ## ########     ##       ##   #### ##     ##  ##  
+; ##     ##  ##        ##    ##    ##     ## ##   ##      ##       ##    ##  ##     ##  ##  
+; ##     ##  ##  ##    ##    ##    ##     ## ##    ##     ##       ##    ##  ##     ##  ##  
+; ##     ## ####  ######     ##     #######  ##     ##    ##        ######    #######  #### 
+
+historyGUI := Gui("+Resize", "Historique")
+historyGUI.SetFont("s10")
+
+historyEdit := historyGUI.Add("Edit", "w200 h200 ReadOnly +Wrap ", "")
+quitHistoryButton := historyGUI.Add("Button", "x50 w150 h40 +BackgroundTrans", "Fermer")
+quitHistoryButton.OnEvent("Click", CloseHistoryGui)
+
+
 
 ; ########  #######  ##    ##  ######  ######## ####  #######  ##    ##  ######
 ; ##       ##     ## ###   ## ##    ##    ##     ##  ##     ## ###   ## ##    ##
@@ -168,7 +194,6 @@ check(forced := false) {
 }
 
 GetRemainingMinutes(forDisplay := false) {
-    configFile := A_ScriptDir "\config.json"
     if FileExist(configFile) {
         content := FileRead(configFile, "UTF-8")
         try {
@@ -280,6 +305,35 @@ OnTrayClick(wParam, lParam, msg, hwnd) {
 runConfig(*) {
     Run(A_ScriptDir "\Config.exe")
 }
+
+CloseHistoryGui(*){
+    historyGUI.Hide()
+}
+
+displayHistory(*){
+    historyEdit.Text := ""
+    history := []
+    content := FileRead(historyFile, "UTF-8")
+    itemsCount := 0
+
+    Loop Parse, content, "`n", "`r"
+    {
+        line := A_LoopField
+        if !InStr(line, "RAZ pour [" A_UserName "]")
+            continue
+        itemsCount += 1
+        parts := StrSplit(line, "] :")
+        parts := StrSplit(parts[2], "=")
+        period := parts[1]
+        count := parts[2]
+        historyEdit.Text .= period " : " humanDuration(Trim(StrReplace(count,"mins.")),"")  "`r`n"
+    }    
+    if(itemsCount == 0){
+        historyEdit.Text := "Aucun historique pour " A_UserName ". `r`n`r`nLa fonctionnalité d'historique n'est peut-être pas activée ?"
+    }
+    quitHistoryButton.Focus
+    historyGUI.Show()
+}    
 
 ; ########  ##     ## ##    ##
 ; ##     ## ##     ## ###   ##
