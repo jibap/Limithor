@@ -2,9 +2,7 @@ namespace App.WindowsService;
 
 using System;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Globalization;
 using System.Management;
 
@@ -39,16 +37,6 @@ public sealed class LimithorService
             int? sessionId = GetActiveSessionId(username);
             bool isActive = sessionId.HasValue;
             bool userIsInChronoMode = user.config.limitDuration == 0;
-
-            // if (userIsInChronoMode)
-            // {
-            //     WriteLog($"Utilisateur: {username} est en mode Chrono (illimité).");
-            // }
-            // else
-            // {
-            //     WriteLog($"Utilisateur: {username}, Actif: {isActive}, Durée utilisée: {user.state.usedDuration} mins, Limite: {user.config.limitDuration} mins");
-            // }
-
 
             if (isActive)
             {
