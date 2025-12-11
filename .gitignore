@@ -1,5 +1,5 @@
 Service/*
-Lib/*
+Lib/*.ahk
 !Service/*.cs  
 !Service/*.csproj  
 *.exe
