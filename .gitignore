@@ -1,4 +1,5 @@
 Service/*
+Lib/*
 !Service/*.cs  
 !Service/*.csproj  
 *.exe
@@ -7,5 +8,4 @@ updater.ahk
 Output/
 config.json
 *.iss
-JSON.ahk
 *.log
