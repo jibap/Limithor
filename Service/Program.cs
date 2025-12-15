@@ -1,18 +1,26 @@
 using App.WindowsService;
-using Microsoft.Extensions.Logging.Configuration;
-using Microsoft.Extensions.Logging.EventLog;
+using System.ServiceProcess;
 
-HostApplicationBuilder builder = Host.CreateApplicationBuilder(args);
-builder.Services.AddWindowsService(options =>
+class Program
 {
-    options.ServiceName = "Limithor";
-});
+    static void Main(string[] args)
+    {
+        // Crée l'instance du service
+        var service = new LimithorService();
 
-LoggerProviderOptions.RegisterProviderOptions<
-    EventLogSettings, EventLogLoggerProvider>(builder.Services);
+        if (Environment.UserInteractive)
+        {
+            Console.WriteLine("Service démarré en mode console.");
+            service.StartForConsole(args);
 
-builder.Services.AddSingleton<LimithorService>();
-builder.Services.AddHostedService<WindowsBackgroundService>();
+            Console.WriteLine("Appuyez sur [Enter] pour arrêter le service.");
+            Console.ReadLine();
 
-IHost host = builder.Build();
-host.Run();
+            service.StopForConsole();
+        }
+        else
+        {
+            ServiceBase.Run(service);
+        }
+    }
+}
