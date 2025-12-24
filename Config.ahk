@@ -62,6 +62,10 @@ if (InStr(windowsVersion, "10")) {
     settingsIconID := "317"
 }
 
+trayMenu := A_TrayMenu
+trayMenu.Delete() ; Supprime les menus par défaut
+trayMenu.add("Quitter", ExitAppli)
+
 ;  ######   #######  ##    ## ######## ####  ######       ######   ##     ## ####
 ; ##    ## ##     ## ###   ## ##        ##  ##    ##     ##    ##  ##     ##  ##
 ; ##       ##     ## ####  ## ##        ##  ##           ##        ##     ##  ##
