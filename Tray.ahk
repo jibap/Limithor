@@ -44,12 +44,17 @@ SetWorkingDir(A_ScriptDir)
 configFile := A_ScriptDir "\config.json"
 historyFile := A_ScriptDir "\service.log"
 
+serviceState := 1
+defaultPauseText := "Mettre en pause le compteur"
+
 ; CREATION DU TRAYMENU
 ; *********************
 trayMenu := A_TrayMenu
 trayMenu.Delete() ; Supprime les menus par défaut
 trayMenu.add("Afficher le profil", displayConfig)
 trayMenu.add("Afficher le temps restant", checkFromTray)
+trayMenu.add()
+trayMenu.add(defaultPauseText, pauseCount)
 trayMenu.add()
 trayMenu.add("Configurer", runConfig)
 trayMenu.add()
@@ -92,6 +97,9 @@ Quota := UserGUI.Add("Text", "x60 y100  w150", "")
 UserGUI.SetFont("c1BBCA8  s11 bold")
 RemainingDuration := UserGUI.Add("Text", "x60 y230  w200", "")
 
+UserGUI.SetFont("cFF0000  s13 bold")
+pauseText := UserGUI.Add("Text", "x150 y70 +BackgroundTrans hidden", "EN PAUSE...")
+
 UserGUI.SetFont("s10 norm")
 
 settingsButton := UserGUI.Add("Button", "x10 y260 w35 h40 +BackgroundTrans +0x40 +0x0C", A_Space)
@@ -101,9 +109,11 @@ settingsButton.OnEvent("Click", runConfig)
 quitButton := UserGUI.Add("Button", "x+10 y260 w150 h40 +BackgroundTrans", "Fermer")
 quitButton.OnEvent("Click", CloseGui)
 
+
 historyButton := UserGUI.Add("Button", "x+10 y260 w35 h40 +BackgroundTrans +0x40 +0x0C", A_Space)
 SetButtonIcon(historyButton, "shell32.dll", historyIconID, 24)
 historyButton.OnEvent("Click", displayHistory)
+
 
 ; ##     ## ####  ######  ########  #######  ########  ##    ##     ######   ##     ## #### 
 ; ##     ##  ##  ##    ##    ##    ##     ## ##     ##  ##  ##     ##    ##  ##     ##  ##  
@@ -162,7 +172,10 @@ SetButtonIcon(Button, File, Index, Size := 16) {
 
 check(forced := false) {
     global lastMinutes
+    RefreshServiceState()
+
     remaining := GetRemainingMinutes()
+    specialTitle := serviceState == 0 ? " ( en pause )" : ""
     specialText := ""
 
     ; Si erreur lors de la récupération, on ne fait rien
@@ -173,13 +186,13 @@ check(forced := false) {
     if (InStr(remaining, "chrono:")) {
         if (forced){
             used := SubStr(remaining, 8)
-            TrayTip("Mode Chrono : " humanDuration(used, " comptée"), "Limithor", 1)
+            TrayTip("Mode Chrono : " humanDuration(used, " comptée"), "Limithor" . specialTitle, 1)
         }
         return
     }
     ; Cas temps écoulé
     if (remaining <= 0) {
-        TrayTip("Temps écoulé. Déconnexion imminente !", "Limithor", 2)
+        TrayTip("Temps écoulé. Déconnexion imminente !", "Limithor" . specialTitle, 2)
         return
     }
     ; Cas < 5 minutes : avertir mais seulement si la minute a changé
@@ -192,7 +205,7 @@ check(forced := false) {
 
     ; Affichage du temps restant seulement sur demande au-dessus de 5 minutes
     if (forced || specialText != "") {
-        TrayTip(humanDuration(remaining) " " specialText, "Limithor", 1)
+        TrayTip(humanDuration(remaining) " " specialText, "Limithor" . specialTitle, 1)
     }
 }
 
@@ -239,7 +252,7 @@ GetRemainingMinutes(forDisplay := false) {
                 Username.Text := user
                 limitType := userConfig.Has("limitType") ? userConfig["limitType"] : "Inconnu"
                 limitTypeH := (limitType = "daily") ? "Cycle Quotidien" : (limitType = "weekly") ? "Cycle Hebdomadaire" :
-                    limitType
+                limitType
                 PeriodType.Text := limitTypeH
                 if (duration == 0) {
                     Quota.Text := "Mode Chrono"
@@ -343,7 +356,34 @@ displayHistory(*){
     }
     quitHistoryButton.Focus
     historyGUI.Show()
-}    
+}
+
+RefreshServiceState(){
+    global serviceState
+    ; Exécute sc query et capture la sortie
+    wmi := ComObjGet("winmgmts:")
+    query := "Select * from Win32_Service where Name='Limithor'"
+    col := wmi.ExecQuery(query)
+    for svc in col {
+        serviceState := svc.State == "Stopped" ? 0 : 1
+    }
+    pauseText.Visible := !serviceState
+    refreshTrayMenu()
+}
+
+refreshTrayMenu(){
+    trayMenu.Rename("4&", serviceState == 0 ? "Relancer le compteur" : defaultPauseText )
+}
+
+pauseCount(*){
+    if(serviceState == 1){
+        RunWait(A_ScriptDir "\Config.exe /stop")
+    }else{
+        RunWait(A_ScriptDir "\Config.exe /start")
+    }
+    Sleep 2000 ; Laisse un peu de temps pour le changement d'état
+    RefreshServiceState()
+}
 
 ; ########  ##     ## ##    ##
 ; ##     ## ##     ## ###   ##
@@ -353,4 +393,5 @@ displayHistory(*){
 ; ##    ##  ##     ## ##   ###
 ; ##     ##  #######  ##    ##
 
+check
 SetTimer check, 50000  ; toutes les 60s

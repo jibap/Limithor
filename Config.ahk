@@ -16,7 +16,11 @@ if A_IsCompiled {
     if !A_IsAdmin {
         try {
             ; Demande l'élévation des privilèges
-            Run '*RunAs "' A_ScriptFullPath '"'
+            args := ""
+            for arg in A_Args {
+                args .= ' "' arg '"'
+            }
+            Run '*RunAs "' A_ScriptFullPath '"' . args
         } 
         ExitApp()
     }
@@ -438,6 +442,17 @@ resetLog(*) {
 
 if (serviceEditable) {
     RunWait('sc stop Limithor', , "Hide")
+    if(A_Args.Length)
+    {
+        Switch A_Args[1] {
+            Case "/stop":
+                ExitApp ; Quitte en silence... 
+            Case "/start":
+                ExitAppli() ;Quitte normalement donc relance le service
+            Default:
+                MsgBox("Argument non reconnu : " . A_Args[1])
+        }
+    }
 }
 getJSON()
 ; Remplit la liste des utilisateurs
