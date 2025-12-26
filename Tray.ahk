@@ -117,7 +117,10 @@ historyGUI := Gui("+Resize", "Historique")
 historyGUI.SetFont("s10")
 
 historyEdit := historyGUI.Add("Edit", "w200 h200 ReadOnly +Wrap ", "")
-quitHistoryButton := historyGUI.Add("Button", "x50 w150 h40 +BackgroundTrans", "Fermer")
+historyGUI.SetFont("bold")
+historyGUI.Add("Text", "xs", "Moyenne : ")
+historySummary := historyGUI.Add("Text","x+10 w100","")
+quitHistoryButton := historyGUI.Add("Button", "xs w200 h40 +BackgroundTrans", "Fermer")
 quitHistoryButton.OnEvent("Click", CloseHistoryGui)
 
 
@@ -268,18 +271,21 @@ GetRemainingMinutes(forDisplay := false) {
 }
 
 humanDuration(minutes, postfix := " restante") {
+    hasPostfix := (postfix != "")
+    s := hasPostfix ? "s" : ""
+
     if (minutes < 60) {
-        return minutes " minute" (minutes > 1 ? "s" : "") postfix (minutes > 1 && postfix != "" ? "s" : "")
+        return minutes . " minute" . (minutes > 1 ? "s" : "") . postfix . (minutes > 1 ? s : "")
     }
 
     hours := Floor(minutes / 60)
-    mins := Mod(minutes, 60)
+    mins  := Mod(minutes, 60)
 
     if (mins = 0) {
-        return hours " heure" (hours > 1 ? "s" : "") postfix (hours > 1 && postfix != "" ? "s" : "")
+        return hours . " heure" . (hours > 1 ? "s" : "") . postfix . (hours > 1 ? s : "")
     }
 
-    return hours "h" (mins < 10 ? "0" : "") mins postfix "s"
+    return hours "h" (mins < 10 ? "0" : "") . mins . postfix . s
 }
 
 OnTrayClick(wParam, lParam, msg, hwnd) {
@@ -315,6 +321,7 @@ displayHistory(*){
     history := []
     content := FileRead(historyFile, "UTF-8")
     itemsCount := 0
+    timerSum := 0
 
     Loop Parse, content, "`n", "`r"
     {
@@ -326,8 +333,11 @@ displayHistory(*){
         parts := StrSplit(parts[2], "=")
         period := parts[1]
         count := parts[2]
-        historyEdit.Text .= period " : " humanDuration(Trim(StrReplace(count,"mins.")),"")  "`r`n"
+        timer := Trim(StrReplace(count,"mins."))
+        timerSum += timer
+        historyEdit.Text .= period " : " humanDuration(timer,"")  "`r`n"
     }    
+    historySummary.Text := itemsCount > 0 ? humanDuration(Floor(timerSum / itemsCount), "") : 0
     if(itemsCount == 0){
         historyEdit.Text := "Aucun historique pour " A_UserName ". `r`n`r`nLa fonctionnalité d'historique n'est peut-être pas activée ?"
     }
