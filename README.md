@@ -1,4 +1,4 @@
-<p align="center"><img src="https://github.com/jibap/Limithor/blob/25.12.05/Limithor_exe.png"/></p>
+<p align="center"><img src="https://github.com/jibap/Limithor/blob/main/Limithor_exe.png"/></p>
 
 # Limithor
 Outil Windows de gestion du temps des sessions utilisateurs. Permet de définir et appliquer des quotas d’utilisation hebdomadaires ou quotidiens.
