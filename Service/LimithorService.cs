@@ -12,6 +12,7 @@ namespace App.WindowsService
         private readonly string _configPath;
         private readonly UserManager _userManager;
         private Timer? _timer;
+        private Timer? _syncTimer;
 
         // Dictionnaire pour suivre l'état verrouillé/déverrouillé par session
         private readonly Dictionary<string,bool> _userLocked = new();
@@ -34,11 +35,13 @@ namespace App.WindowsService
 
             // Timer pour exécuter Check toutes les 10 secondes
             _timer = new Timer(_ => Check(), null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+            _syncTimer = new Timer(_ => SyncUsers(), null, TimeSpan.FromMinutes(5), TimeSpan.FromHours(1));
         }
 
         protected override void OnStop()
         {
             _timer?.Dispose();
+            _syncTimer?.Dispose();
             WriteLog("Service arrêté");
         }
 
@@ -118,6 +121,15 @@ namespace App.WindowsService
 
             if (configHasChanged)
                 _userManager.Save();
+        }
+
+        private void SyncUsers()
+        {
+            bool changed = _userManager.SyncUsers();
+            if (changed)
+            {
+                _userManager.Save();
+            }
         }
 
         private string GetCycleKey(string limitType)
@@ -208,8 +220,21 @@ namespace App.WindowsService
     }
 
     // --- Classes de configuration ---
-    public class UserConfig { public string limitType { get; set; } = "weekly"; public int limitDuration { get; set; } = 480; public bool enabled { get; set; } = false; }
-    public class UserState { public int usedDuration { get; set; } = 0; public string cycleKey { get; set; } = ""; public long lastCountedTimestamp { get; set; } = 0; }
+    // Par défaut : bloqué
+    public class UserConfig 
+    { 
+        public string limitType     { get; set; } = "weekly"; 
+        public int    limitDuration { get; set; } = 480; 
+        public bool   enabled       { get; set; } = true; 
+    }
+
+    public class UserState  
+    { 
+        public int    usedDuration          { get; set; } = 480; 
+        public string cycleKey              { get; set; } = $"{DateTime.Now.Year}-w{ISOWeek.GetWeekOfYear(DateTime.Now)}"; // = limitDuration → bloqué par défaut
+        public long   lastCountedTimestamp  { get; set; } = DateTimeOffset.UtcNow.ToUnixTimeSeconds(); 
+    }    
+
     public class UserData { public UserConfig config { get; set; } = new(); public UserState state { get; set; } = new(); }
     public class RootConfig { public bool log { get; set; } = false; public Dictionary<string, UserData> users { get; set; } = new(); }
 
@@ -225,23 +250,82 @@ namespace App.WindowsService
             if (!File.Exists(_configPath))
             {
                 Config = new RootConfig();
-                GenerateAllUsers();
-                Save();
-                return;
+                Save(); 
+            }
+            else
+            {
+                try
+                {
+                    var json = File.ReadAllText(_configPath);
+                    Config = JsonSerializer.Deserialize<RootConfig>(json) ?? new RootConfig();
+                }
+                catch { Config = new RootConfig(); }
             }
 
-            try
-            {
-                var json = File.ReadAllText(_configPath);
-                Config = JsonSerializer.Deserialize<RootConfig>(json) ?? new RootConfig();
-            }
-            catch { }
+            SyncUsers();
+            Save();
         }
 
-        private void GenerateAllUsers()
+        public bool SyncUsers()
         {
-            foreach (var user in GetLocalWindowsUsers())
-                Config.users[user] = new UserData();
+            var windowsUsers = GetLocalWindowsUsers().ToHashSet(StringComparer.OrdinalIgnoreCase);
+            bool changed = false;
+
+            // Ajouter les utilisateurs manquants
+            foreach (var user in windowsUsers)
+            {
+                if (!Config.users.ContainsKey(user))
+                {
+                    var data = new UserData();
+                    if (IsUserAdmin(user))
+                    {
+                        data.config.enabled = false;
+                    }
+                    Config.users[user] = data;
+                    changed = true;
+                }
+            }
+
+            // Retirer les utilisateurs supprimés/renommés
+            var toRemove = Config.users.Keys
+                .Where(u => !windowsUsers.Contains(u))
+                .ToList();
+
+            foreach (var u in toRemove)
+            {
+                Config.users.Remove(u);
+                changed = true;
+            }
+
+            return changed;
+        }
+
+        private bool IsUserAdmin(string username)
+        {
+            try
+            {
+                var groupQuery = new ManagementObjectSearcher(
+                    "SELECT * FROM Win32_Group WHERE SID='S-1-5-32-544'");
+
+                foreach (var group in groupQuery.Get())
+                {
+                    string groupName = group["Name"]?.ToString() ?? "";
+                    string domain    = group["Domain"]?.ToString() ?? "";
+
+                    var memberQuery = new ManagementObjectSearcher(
+                        $"SELECT * FROM Win32_GroupUser WHERE GroupComponent=" +
+                        $"\"Win32_Group.Domain='{domain}',Name='{groupName}'\"");
+
+                    foreach (var member in memberQuery.Get())
+                    {
+                        string part = member["PartComponent"]?.ToString() ?? "";
+                        if (part.IndexOf($"Name=\"{username}\"", StringComparison.OrdinalIgnoreCase) >= 0)
+                            return true;
+                    }
+                }
+            }
+            catch { }
+            return false;
         }
 
         public void Save()
