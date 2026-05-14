@@ -12,7 +12,6 @@ namespace App.WindowsService
         private readonly string _configPath;
         private readonly UserManager _userManager;
         private Timer? _timer;
-        private Timer? _syncTimer;
 
         // Dictionnaire pour suivre l'état verrouillé/déverrouillé par session
         private readonly Dictionary<string,bool> _userLocked = new();
@@ -35,13 +34,15 @@ namespace App.WindowsService
 
             // Timer pour exécuter Check toutes les 10 secondes
             _timer = new Timer(_ => Check(), null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
-            _syncTimer = new Timer(_ => SyncUsers(), null, TimeSpan.FromMinutes(5), TimeSpan.FromHours(1));
+            // Vérifier les utilisateurs au démarrage
+            SyncUsers();
         }
 
         protected override void OnStop()
         {
             _timer?.Dispose();
-            _syncTimer?.Dispose();
+            // Vérifier les utilisateurs à l'arrêt (mode config)
+            SyncUsers();
             WriteLog("Service arrêté");
         }
 
@@ -220,7 +221,6 @@ namespace App.WindowsService
     }
 
     // --- Classes de configuration ---
-    // Par défaut : bloqué
     public class UserConfig 
     { 
         public string limitType     { get; set; } = "weekly"; 
