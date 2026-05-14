@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>App.WindowsService</RootNamespace>
@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Management" Version="9.0.10" />
+    <PackageReference Include="System.Management" Version="10.0.8" />
     <PackageReference Include="System.ServiceProcess.ServiceController" Version="7.0.0" />
   </ItemGroup>
 </Project>
