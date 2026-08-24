@@ -335,11 +335,7 @@ saveConfig(*) {
 
     cfg["limitDuration"] := quota
 
-    usedDuration := quota - remainingMinutes.Value
-    if (usedDuration < 0) {
-        usedDuration := 0
-    }
-    userObj["state"]["usedDuration"] := usedDuration
+    userObj["state"]["usedDuration"] := quota - remainingMinutes.Value
 
     ; journal
     jsonObj["log"] := logCB.Value ? JSON.true : JSON.false
