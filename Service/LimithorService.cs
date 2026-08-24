@@ -91,8 +91,19 @@ namespace App.WindowsService
                 {
                     if (!string.IsNullOrEmpty(user.state.cycleKey))
                     {
-                        WriteLog($"RAZ pour [{username}] : {user.state.cycleKey} = {user.state.usedDuration} mins.");
-                        user.state.usedDuration = 0;
+                        var usedDurationBeforeReset = user.state.usedDuration;
+                        if (user.config.reportMode)
+                        {
+                            var remainingTime = user.state.usedDuration - user.config.limitDuration; // calcul le temps non utilisé ou sur-utilisé
+                            int bonusCap = user.config.limitDuration * 4; // Autorise jusqu'à 4x la valeur du quota en bonus
+                            int malusCap = user.config.limitDuration; // Tronque la valeur du malus à 1x le quota
+                            user.state.usedDuration = Math.Clamp(remainingTime, -bonusCap, malusCap);
+                        }
+                        else
+                        {
+                            user.state.usedDuration = 0;
+                        }
+                        WriteLog($"RAZ pour [{username}] : {user.state.cycleKey} = {usedDurationBeforeReset} mins.");
                     }
                     user.state.cycleKey = currentCycleKey;
                     userChanged = true;
@@ -112,8 +123,8 @@ namespace App.WindowsService
                 if (userChanged)
                     configHasChanged = true;
 
-                // Déconnexion si quota dépassé
-                if (user.config.limitDuration > 0 && user.state.usedDuration >= user.config.limitDuration)
+                // Déconnexion si pas en mode chrono && quota dépassé
+                if (!user.config.chronoMode && user.state.usedDuration >= user.config.limitDuration)
                 {
                     WriteLog($"{username} a dépassé son quota. Déconnexion...");
                     NativeMethods.WTSDisconnectSession(IntPtr.Zero, sessionId.Value, false);
@@ -223,15 +234,17 @@ namespace App.WindowsService
     // --- Classes de configuration ---
     public class UserConfig 
     { 
-        public string limitType     { get; set; } = "weekly"; 
-        public int    limitDuration { get; set; } = 480; 
-        public bool   enabled       { get; set; } = true; 
+        public string limitType { get; set; } = "weekly"; 
+        public int limitDuration { get; set; } = 480; 
+        public bool enabled { get; set; } = true; 
+        public bool chronoMode { get; set; } = false; 
+        public bool reportMode { get; set; } = false; 
     }
 
     public class UserState  
     { 
-        public int    usedDuration          { get; set; } = 480; 
-        public string cycleKey              { get; set; } = $"{DateTime.Now.Year}-w{ISOWeek.GetWeekOfYear(DateTime.Now)}"; // = limitDuration → bloqué par défaut
+        public int    usedDuration          { get; set; } = 480; // = limitDuration → bloqué par défaut
+        public string cycleKey              { get; set; } = $"{DateTime.Now.Year}-w{ISOWeek.GetWeekOfYear(DateTime.Now)}"; 
         public long   lastCountedTimestamp  { get; set; } = DateTimeOffset.UtcNow.ToUnixTimeSeconds(); 
     }    
 

@@ -114,7 +114,7 @@ ConfigGUI.Add("Picture", "Icon" . contactIconID . " x+10 y110 w36 h36", "shell32
 UsernameSelected := ConfigGUI.Add("Text", "x+5 yp-5 w100", "")
 
 UserEnabledCB := ConfigGUI.Add("Checkbox", "", "Activé")
-UserEnabledCB.OnEvent("Click", userHasChanged)
+UserEnabledCB.OnEvent("Click", enableSaveButton)
 ConfigGUI.SetFont("s10 norm")
 
 ChronoModeCB := ConfigGUI.Add("Checkbox", "x+10 yp+5", "Mode chrono")
@@ -123,7 +123,13 @@ ChronoModeCB.OnEvent("Click", chronoModeCBChanged)
 chronoHelp := ConfigGUI.Add("Picture", "Icon" . helpIconID . " x+0 w16 h16 +0x0100", "shell32.dll")
 ConfigGUI.Tips.SetTip(chronoHelp, "Le temps de session est compté mais il n'y a pas de déconnexion.`nÀ la fin de la période choisie, le temps compté est remis à zéro`net conservé dans l'historique (si activé).")
 
-ConfigGUI.Add("GroupBox", "x180 y+30 w240 h50", "Périodicité")
+ReportModeCB := ConfigGUI.Add("Checkbox", "y+10 x311", "Mode cumul")
+ReportModeCB.OnEvent("Click", ReportModeCBChanged)
+
+reportHelp := ConfigGUI.Add("Picture", "Icon" . helpIconID . " x+5 w16 h16 +0x0100", "shell32.dll")
+ConfigGUI.Tips.SetTip(reportHelp, "Le temps restant est conservé lors de la remise à 0 du quota (si activé).")
+
+ConfigGUI.Add("GroupBox", "x180 y+0 w240 h50", "Périodicité")
 radioPeriodH := ConfigGUI.Add("Radio", "xp+10 yp+20 Group", "Hebdomadaire")
 radioPeriodQ := ConfigGUI.Add("Radio", "x+20 ", "Quotidien")
 radioPeriodH.OnEvent("Click", periodChanged)
@@ -207,7 +213,7 @@ toggleLogs(*) {
     saveJSON()
 }
 
-userHasChanged(*) {
+enableSaveButton(*) {
     SaveButton.Enabled := true
 }
 
@@ -266,12 +272,13 @@ userSelected(*) {
     UsernameSelected.Text := UserList.Text
     
     UserEnabledCB.Value := (currentUserConfig.Has("enabled") && currentUserConfig["enabled"] == JSON.true) ? true : false
-    ChronoModeCB.Value := (currentUserConfig.Has("limitDuration") && currentUserConfig["limitDuration"] = 0) ? true : false
+    ChronoModeCB.Value := (currentUserConfig.Has("chronoMode") && currentUserConfig["chronoMode"] == JSON.true) ? true : false
+    ReportModeCB.Value := (currentUserConfig.Has("reportMode") && currentUserConfig["reportMode"] == JSON.true) ? true : false
     radioPeriodH.Value := (currentUserConfig.Has("limitType") && currentUserConfig["limitType"] = "weekly") ? true : false
     radioPeriodQ.Value := (currentUserConfig.Has("limitType") && currentUserConfig["limitType"] = "daily") ? true : false
     quotaInMinutes := currentUserConfig.Has("limitDuration") ? currentUserConfig["limitDuration"] : 0
 
-    chronoChecked(true)
+    chronoChecked(true) ; trigger pour masquer les controles liés à la CB chrono
 
     ; Détermine l'unité du quota
     if (quotaInMinutes > 60 && (Mod(quotaInMinutes, 60) = 0)) {
@@ -308,6 +315,8 @@ saveConfig(*) {
 
     ; état activé
     cfg["enabled"] := UserEnabledCB.Value ? JSON.true : JSON.false
+    cfg["chronoMode"] := ChronoModeCB.Value ? JSON.true : JSON.false
+    cfg["reportMode"] := ReportModeCB.Value ? JSON.true : JSON.false
 
     ; périodicité
     if (radioPeriodH.Value)
@@ -351,22 +360,20 @@ chronoModeCBChanged(*){
     chronoChecked(false)
 }
 
+reportModeCBChanged(*){
+    enableSaveButton()
+}
+
 chronoChecked(init := false) {
     quotaEdit.Enabled := !ChronoModeCB.Value
     RadioQuotaUnitM.Enabled := !ChronoModeCB.Value
     RadioQuotaUnitH.Enabled := !ChronoModeCB.Value
     remainingMinutes.Enabled := !ChronoModeCB.Value
-    quotaEdit.Value := ChronoModeCB.Value ? 0 : 1
-    if (ChronoModeCB.Value = false) {
-        RadioQuotaUnitH.Value := true
-        RadioQuotaUnitM.Value := false
-    }
-    if !init{ ; besoin de faire suivre les changements si cliqué par l'utilisateur et non à l'initialisation
-        quotaChanged()
-        userHasChanged()
+    ReportModeCB.Enabled := !ChronoModeCB.Value
+    if !init{ ; dégrise le bouton d'enregistrement
+        enableSaveButton()
     }
 }
-
 
 periodChanged(*) {
     if(logCB.Value){
@@ -380,41 +387,31 @@ periodChanged(*) {
             resetLog()
         }
     }
-    userHasChanged()
+    enableSaveButton()
 }
 
 quotaChanged(*) {
     if (quotaEdit.Value != "") {
-        if (RadioQuotaUnitM.Value == true) {
-            remainingMinutes.Value := quotaEdit.Value
-        } else {
-            remainingMinutes.Value := quotaEdit.Value * 60
-        }
+        remainingMinutes.Value := RadioQuotaUnitM.Value ? quotaEdit.Value : quotaEdit.Value * 60 
     }else{
-        quotaEdit.Value := 0 
+        quotaEdit.Value := 0 ; évite le champ vide
     }
-    userHasChanged()
+    enableSaveButton()
 }
 
 remainingMinutesChanged(*) {
     if (remainingMinutes.Value != "" && quotaEdit.Value != "") {
-        if (RadioQuotaUnitM.Value == true) {
-            if (remainingMinutes.Value > quotaEdit.Value) {
-                remainingMinutes.Value := quotaEdit.Value
-                ToolTip("Le temps restant ne peut pas être supérieur au quota.", , , 1)
-                SetTimer(HideToolTip, 2000)
-            }
-        } else {
-            if (remainingMinutes.Value > quotaEdit.Value * 60) {
-                remainingMinutes.Value := quotaEdit.Value * 60                
-                ToolTip("Le temps restant ne peut pas être supérieur au quota.", , , 1)
-                SetTimer(HideToolTip, 2000)
-            }
+        maxBonus := RadioQuotaUnitM.Value ? quotaEdit.Value * 4 : quotaEdit.Value * 60 * 4
+
+        if (remainingMinutes.Value > maxBonus) {
+            remainingMinutes.Value := maxBonus
+            ToolTip("Le temps restant ne peut pas dépasser 4x le quota.", , , 1)
+            SetTimer(HideToolTip, 2000)
         }
-        userHasChanged()
     }else{
-        remainingMinutes.Value := 0 
+        remainingMinutes.Value := 0 ; évite le champ vide
     }
+    enableSaveButton()
 }
 
 HideToolTip() {
